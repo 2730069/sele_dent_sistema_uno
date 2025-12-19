@@ -1,6 +1,7 @@
 from capaDatos.dPersona import DPersona
 
 class LPersona:
+
     def __init__(self):
         self.__dPersona = DPersona()
 
