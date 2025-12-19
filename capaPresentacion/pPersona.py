@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
-from capaLogica.lPersona import LPersona
+from capaLogica.dPersona import LPersona
 
 class PPersonas:
 
