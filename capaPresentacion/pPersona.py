@@ -1,95 +1,59 @@
 import streamlit as st
-from supabase import create_client, Client
+import pandas as pd
+from datetime import date
+from capaLogica.lPersona import LPersona
 
-# ---------------------------------
-# CONFIGURACIÓN SUPABASE
-# ---------------------------------
-SUPABASE_URL = "https://nxambvgqormhaykxtvim.supabase.co"
-SUPABASE_KEY = "sb_secret_X-fnD5aPgSVbnAYnkHpWoA_dkOC5d5M"
+class PPersonas:
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    def __init__(self):
+        self.lpersona = LPersona()
 
-# ---------------------------------
-# FUNCIONES PARA OBTENER DATOS
-# ---------------------------------
+    def run(self):
 
-def obtener_pacientes():
-    try:
-        response = supabase.table("pacientes").select("*").execute()
-        return response.data if response.data else []
-    except Exception as e:
-        st.error(f"Error al obtener pacientes: {e}")
-        return []
+        st.set_page_config(page_title="Sele Dent", layout="wide")
+        st.title("Sistema Clínico - Sele Dent")
 
-def obtener_historial():
-    try:
-        response = supabase.table("historial").select("*").execute()
-        return response.data if response.data else []
-    except Exception as e:
-        st.error(f"Error al obtener historial clínico: {e}")
-        return []
+        menu = st.sidebar.selectbox(
+            "Menú",
+            [
+                "Registrar Paciente",
+                "Ver Pacientes",
+                "Actualizar Paciente",
+                "Eliminar Paciente"
+            ]
+        )
 
-def obtener_tratamientos():
-    try:
-        response = supabase.table("tratamientos").select("*").execute()
-        return response.data if response.data else []
-    except Exception as e:
-        st.error(f"Error al obtener tratamientos: {e}")
-        return []
+        if menu == "Registrar Paciente":
+            with st.form("form_paciente"):
+                dni = st.text_input("DNI")
+                nombres = st.text_input("Nombres")
+                apepaterno = st.text_input("Apellido Paterno")
+                apematerno = st.text_input("Apellido Materno")
+                fecha = st.date_input("Fecha nacimiento", date(2000,1,1))
+                telefono = st.text_input("Teléfono")
+                correo = st.text_input("Correo")
+                contrasenia = st.text_input("Contraseña", type="password")
+                genero = st.selectbox("Género", ["M", "F"])
+                guardar = st.form_submit_button("Guardar")
 
+            if guardar:
+                persona = {
+                    "dni": dni,
+                    "nombres": nombres,
+                    "apepaterno": apepaterno,
+                    "apematerno": apematerno,
+                    "fecha_nacimiento": str(fecha),
+                    "telefono": telefono,
+                    "correo": correo,
+                    "contrasenia": contrasenia,
+                    "genero": genero
+                }
+                self.lpersona.insertarPersona(persona)
+                st.success("Paciente registrado")
 
-# ---------------------------------
-# INTERFAZ
-# ---------------------------------
-
-st.title("Sistema Clínico - Sele Dent")
-
-menu = st.sidebar.selectbox(
-    "Menú",
-    ["Pacientes", "Historial Clínico", "Tratamientos"]
-)
-
-# ---------------------------------
-# OPCIÓN 1: VER PACIENTES
-# ---------------------------------
-if menu == "Pacientes":
-    st.header("🧑‍⚕️ Lista de Pacientes Registrados")
-
-    pacientes = obtener_pacientes()
-
-    if pacientes:
-        st.success(f"Pacientes encontrados: {len(pacientes)}")
-        st.table(pacientes)
-    else:
-        st.warning("No hay pacientes registrados.")
-
-
-# ---------------------------------
-# OPCIÓN 2: VER HISTORIAL CLÍNICO
-# ---------------------------------
-elif menu == "Historial Clínico":
-    st.header("📘 Historial Clínico de Pacientes")
-
-    historial = obtener_historial()
-
-    if historial:
-        st.success(f"Registros encontrados: {len(historial)}")
-        st.table(historial)
-    else:
-        st.warning("No hay historial registrado.")
-
-
-# ---------------------------------
-# OPCIÓN 3: VER TRATAMIENTOS
-# ---------------------------------
-elif menu == "Tratamientos":
-    st.header("💊 Tratamientos Realizados")
-
-    tratamientos = obtener_tratamientos()
-
-    if tratamientos:
-        st.success(f"Tratamientos encontrados: {len(tratamientos)}")
-        st.table(tratamientos)
-    else:
-        st.warning("No hay tratamientos registrados.")
-
+        elif menu == "Ver Pacientes":
+            pacientes = self.lpersona.mostrarPersona()
+            if pacientes:
+                st.dataframe(pd.DataFrame(pacientes), use_container_width=True)
+            else:
+                st.warning("No hay pacientes")
